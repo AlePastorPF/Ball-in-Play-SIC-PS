@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>San Isidro Club — Ball in Play / Secuencias Largas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
+<style>
+:root{
+  --bg:#060a0e;
+  --panel:#0e141a;
+  --panel2:#141c24;
+  --border:#212b35;
+  --border-soft:#19222b;
+  --text:#eef2f5;
+  --text-dim:#8b98a5;
+  --text-faint:#57636f;
+  --sic-blue:#2390cf;
+  --sic-blue-soft:rgba(35,144,207,.16);
+  --sic-blue2:#5cb8ea;
+  --green:#34d399;
+  --green-soft:rgba(52,211,153,.14);
+  --red:#fb7185;
+  --red-soft:rgba(251,113,133,.14);
+  --amber:#fbbf24;
+  --grey:#7a8794;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  --sans:'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --display:'Manrope','Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; -webkit-font-smoothing:antialiased;}
+body{padding-bottom:60px;}
+
+/* ---- Header ---- */
+.header{
+  padding:26px clamp(16px,3vw,40px) 22px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg, #0b1119 0%, var(--bg) 100%);
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; gap:22px; flex-wrap:wrap;
+}
+.header::after{
+  content:""; position:absolute; top:-60px; right:-80px; width:380px; height:380px;
+  background:radial-gradient(circle, var(--sic-blue-soft) 0%, transparent 70%); pointer-events:none;
+}
+.header-logo{width:64px; height:64px; flex-shrink:0; filter:drop-shadow(0 0 14px rgba(35,144,207,.35));}
+.header-text{flex:1; min-width:260px;}
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--sic-blue2); margin-bottom:8px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--sic-blue); box-shadow:0 0 8px var(--sic-blue);}
+h1{
+  font-family:var(--display); font-size:clamp(22px,3vw,30px); font-weight:800; letter-spacing:-.01em; line-height:1.08;
+  text-transform:uppercase;
+}
+h1 .club-name{color:var(--text);}
+h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em; margin-top:4px; letter-spacing:.01em;}
+.subtitle{color:var(--text-dim); margin-top:9px; max-width:760px; font-size:13px; line-height:1.55;}
+.update-btn-wrap{display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
+.update-btn{
+  font-family:var(--display); font-weight:700; font-size:12.5px; letter-spacing:.03em;
+  background:var(--sic-blue); color:#04121c; border:none; padding:11px 18px; border-radius:7px; cursor:pointer;
+  display:flex; align-items:center; gap:8px; transition:filter .12s;
+}
+.update-btn:hover{filter:brightness(1.1);}
+.update-note{font-size:10.5px; color:var(--text-faint); max-width:180px; text-align:right; line-height:1.4;}
+#csvUploadInput{display:none;}
+.upload-status{font-family:var(--mono); font-size:11px; color:var(--sic-blue2); margin-top:4px;}
+
+/* ---- Methodology callout ---- */
+.callout{
+  margin:18px clamp(16px,3vw,40px) 0; border:1px solid var(--border); background:var(--panel);
+  border-left:3px solid var(--amber); border-radius:6px; padding:14px 18px;
+}
+.callout summary{cursor:pointer; font-weight:700; font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--amber); list-style:none; display:flex; align-items:center; gap:8px; font-family:var(--display);}
+.callout summary::-webkit-details-marker{display:none;}
+.callout summary::before{content:"▸"; transition:transform .15s;}
+.callout[open] summary::before{transform:rotate(90deg);}
+.callout-body{margin-top:10px; color:var(--text-dim); font-size:13px; line-height:1.7;}
+.callout-body b{color:var(--text);}
+.tag-issue{display:inline-block; font-family:var(--mono); font-size:11px; background:var(--panel2); border:1px solid var(--border); border-radius:4px; padding:1px 6px; margin-right:6px; color:var(--text-dim);}
+
+/* ---- Filters ---- */
+.filters{
+  position:sticky; top:0; z-index:50; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  padding:12px clamp(16px,3vw,40px); background:rgba(6,10,14,.92); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border); margin-top:18px;
+}
+.filters label{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-right:6px;}
+.filters select{background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:5px; padding:6px 10px; font-size:12.5px; font-family:var(--sans); cursor:pointer;}
+.fgroup{display:flex; align-items:center; gap:6px;}
+.chip{font-family:var(--mono); font-size:11px; padding:4px 9px; border-radius:20px; border:1px solid var(--border); color:var(--text-dim); cursor:pointer; transition:all .12s; user-select:none;}
+.chip.active{background:var(--sic-blue-soft); border-color:var(--sic-blue); color:var(--sic-blue2);}
+
+/* ---- multi-select dropdowns ---- */
+.msel-wrap{position:relative;}
+.msel-btn{
+  background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:5px;
+  padding:6px 10px; font-size:12.5px; font-family:var(--sans); cursor:pointer; display:inline-flex;
+  align-items:center; gap:6px; min-width:120px; justify-content:space-between;
+}
+.msel-btn:hover{border-color:var(--text-dim);}
+.msel-btn.has-selection{border-color:var(--sic-blue); color:var(--sic-blue2); background:var(--sic-blue-soft);}
+.msel-panel{
+  position:absolute; top:calc(100% + 6px); left:0; z-index:80; min-width:260px; max-width:340px;
+  background:var(--panel2); border:1px solid var(--border); border-radius:8px; box-shadow:0 12px 28px rgba(0,0,0,.45);
+  padding:8px; display:flex; flex-direction:column; gap:6px;
+}
+.msel-panel[hidden]{display:none;}
+.msel-actions{display:flex; gap:14px; padding:2px 6px 6px; border-bottom:1px solid var(--border); margin-bottom:2px;}
+.msel-action{font-family:var(--mono); font-size:10.5px; color:var(--sic-blue2); cursor:pointer; letter-spacing:.03em;}
+.msel-action:hover{text-decoration:underline;}
+.msel-list{max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:1px;}
+.msel-item{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:5px; cursor:pointer; font-size:12.5px; color:var(--text-dim);}
+.msel-item:hover{background:var(--panel);}
+.msel-item input[type="checkbox"]{accent-color:var(--sic-blue); width:14px; height:14px; flex-shrink:0; cursor:pointer;}
+.msel-item img.msel-logo{width:15px; height:15px; object-fit:contain; border-radius:2px; flex-shrink:0;}
+.msel-item span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.reset-btn{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); border:1px solid var(--border); background:transparent; padding:6px 12px; border-radius:5px; cursor:pointer;}
+.reset-btn:hover{color:var(--text); border-color:var(--text-dim);}
+.result-count{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+
+/* ---- Sections ---- */
+.section{padding:26px clamp(16px,3vw,40px) 6px;}
+.section-title{font-family:var(--display); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; color:var(--text-faint); display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.section-title::after{content:""; flex:1; height:1px; background:var(--border);}
+.section-num{font-family:var(--mono); color:var(--sic-blue);}
+
+/* ---- KPI cards ---- */
+.kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:12px;}
+.kpi-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; position:relative; overflow:hidden;}
+.kpi-card .kpi-label{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px;}
+.kpi-card .kpi-value{font-family:var(--display); font-size:27px; font-weight:800; letter-spacing:-.02em; line-height:1;}
+.kpi-card .kpi-sub{font-size:11.5px; color:var(--text-dim); margin-top:6px;}
+.kpi-card.accent{border-top:2px solid var(--sic-blue);} .kpi-card.accent .kpi-value{color:var(--sic-blue2);}
+.kpi-card.green-c{border-top:2px solid var(--green);} .kpi-card.green-c .kpi-value{color:var(--green);}
+.kpi-card.amber-c{border-top:2px solid var(--amber);} .kpi-card.amber-c .kpi-value{color:var(--amber);}
+.kpi-card.sky-c{border-top:2px solid var(--sic-blue2);} .kpi-card.sky-c .kpi-value{color:var(--sic-blue2);}
+
+/* ---- Grid layouts ---- */
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.grid-3{display:grid; grid-template-columns:1.3fr .7fr; gap:14px;}
+.panel{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px 10px;}
+.panel-title{font-family:var(--display); font-size:13px; font-weight:700; margin-bottom:2px;}
+.panel-desc{font-size:11.5px; color:var(--text-faint); margin-bottom:12px;}
+.chart-wrap{position:relative; height:260px;}
+.chart-wrap.tall{height:340px;}
+.chart-wrap.xtall{height:480px;}
+.chart-wrap.donut{height:300px;}
+
+/* ---- Insights ---- */
+.insights-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;}
+.insight-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; border-left:3px solid var(--sic-blue2);}
+.insight-card h4{font-family:var(--display); font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--sic-blue2); margin-bottom:8px; font-weight:700;}
+.insight-card p{font-size:12.5px; line-height:1.65; color:var(--text-dim); margin-bottom:6px;}
+.insight-card p b{color:var(--text);}
+.insight-card .lbl{font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint);}
+
+/* ---- Legend / badges ---- */
+.badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; padding:2px 8px; border-radius:20px;}
+.badge.green{background:var(--green-soft); color:var(--green);}
+.badge.red{background:var(--red-soft); color:var(--red);}
+.badge.grey{background:rgba(122,135,148,.14); color:var(--grey);}
+.dot{width:7px; height:7px; border-radius:50%;}
+.dot.green{background:var(--green);} .dot.red{background:var(--red);} .dot.grey{background:var(--grey);}
+
+/* ---- club logo chips ---- */
+.club-chip{display:inline-flex; align-items:center; gap:6px;}
+.club-chip img{width:16px; height:16px; object-fit:contain; border-radius:2px;}
+
+/* ---- Table ---- */
+.table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:8px;}
+table{width:100%; border-collapse:collapse; font-size:12px;}
+thead th{position:sticky; top:0; background:var(--panel2); text-align:left; padding:9px 12px; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); border-bottom:1px solid var(--border); cursor:pointer; white-space:nowrap;}
+thead th:hover{color:var(--text);}
+tbody td{padding:8px 12px; border-bottom:1px solid var(--border-soft); color:var(--text-dim); white-space:nowrap;}
+tbody tr:hover{background:var(--panel2);}
+tbody td.num{font-family:var(--mono); color:var(--text);}
+.cat-pill{font-family:var(--mono); font-size:10.5px; padding:2px 7px; border-radius:4px; background:var(--panel2); border:1px solid var(--border);}
+
+/* ---- Heatmap ---- */
+.heatmap-scroll{overflow-x:auto;}
+.heatmap{border-collapse:collapse; font-size:11px; width:100%;}
+.heatmap th{font-family:var(--mono); font-size:10px; color:var(--text-faint); padding:6px 8px; text-transform:uppercase; letter-spacing:.05em;}
+.heatmap td{text-align:center; padding:7px 8px; font-family:var(--mono); border:1px solid var(--bg); color:#0a0e12; font-weight:700; min-width:52px;}
+.heatmap td.rowlabel{text-align:left; color:var(--text-dim); font-weight:400; background:transparent;}
+.heatmap td.rowlabel img{width:16px; height:16px; object-fit:contain; vertical-align:middle; margin-right:6px; border-radius:2px;}
+
+.tl-legend{display:flex; gap:16px; align-items:center; margin-bottom:10px; font-size:11.5px; color:var(--text-dim); flex-wrap:wrap;}
+
+footer{padding:30px clamp(16px,3vw,40px); color:var(--text-faint); font-size:11px; border-top:1px solid var(--border); margin-top:30px;}
+
+@media (max-width:1100px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .grid-2, .grid-3{grid-template-columns:1fr;}
+  .header{flex-direction:column; align-items:flex-start;}
+  .update-btn-wrap{align-items:flex-start;}
+  .update-note{text-align:left;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img class="header-logo" id="headerLogo" alt="San Isidro Club">
+  <div class="header-text">
+    <div class="eyebrow">Performance Analysis · Sports Science</div>
+    <h1><span class="club-name">San Isidro Club</span><span class="sub">Ball in Play / Secuencias Largas</span></h1>
+    <div class="subtitle">Top 14 URBA 2026 — Fase Regular. Análisis de Ball in Play, secuencias de juego &gt;60s y clasificación por resultado de jugada (Verde/Rojo) a partir del tagging de eventos.</div>
+  </div>
+  <div class="update-btn-wrap">
+    <button class="update-btn" id="updateDataBtn">⟳ Actualizar datos</button>
+    <div class="update-note">Cargá nuevas planillas (.csv) con el mismo formato para sumarlas al dashboard.</div>
+    <input type="file" id="csvUploadInput" accept=".csv" multiple>
+    <div class="upload-status" id="uploadStatus"></div>
+  </div>
+</div>
+
+<details class="callout" id="methoCallout">
+  <summary>Revisión de calidad de datos y definiciones — leer antes de interpretar el dashboard</summary>
+  <div class="callout-body" id="methoBody"></div>
+</details>
+
+<div class="filters">
+  <div class="fgroup msel-wrap" id="partidoMselWrap">
+    <label>Partido</label>
+    <button type="button" class="msel-btn" id="partidoMselBtn">Todos ▾</button>
+    <div class="msel-panel" id="partidoMselPanel" hidden>
+      <div class="msel-actions">
+        <span class="msel-action" data-target="partido" data-action="all">Seleccionar todos</span>
+        <span class="msel-action" data-target="partido" data-action="none">Limpiar</span>
+      </div>
+      <div class="msel-list" id="partidoMselList"></div>
+    </div>
+  </div>
+  <div class="fgroup">
+    <label>Resultado</label>
+    <select id="fResultado">
+      <option value="all">Todos</option>
+      <option value="Ganado">🟢 Ganados</option>
+      <option value="Perdido">🔴 Perdidos</option>
+    </select>
+  </div>
+  <div class="fgroup msel-wrap" id="durMselWrap">
+    <label>Duración</label>
+    <button type="button" class="msel-btn" id="durMselBtn">Todas ▾</button>
+    <div class="msel-panel" id="durMselPanel" hidden>
+      <div class="msel-actions">
+        <span class="msel-action" data-target="dur" data-action="all">Seleccionar todas</span>
+        <span class="msel-action" data-target="dur" data-action="none">Limpiar</span>
+      </div>
+      <div class="msel-list" id="durMselList">
+        <label class="msel-item"><input type="checkbox" value="60-90s"><span>60–90s</span></label>
+        <label class="msel-item"><input type="checkbox" value="90-120s"><span>90–120s</span></label>
+        <label class="msel-item"><input type="checkbox" value=">120s"><span>&gt;120s</span></label>
+      </div>
+    </div>
+  </div>
+  <span class="result-count" id="resultCount"></span>
+  <button class="reset-btn" id="resetBtn">↺ Reset filtros</button>
+</div>
+
+<!-- FILA 1 — KPIs -->
+<div class="section">
+  <div class="section-title"><span class="section-num">01</span> KPIs Generales — Ball in Play</div>
+  <div class="kpi-row" id="kpiRow"></div>
+</div>
+
+<!-- FILA 2 — Match demands -->
+<div class="section">
+  <div class="section-title"><span class="section-num">02</span> Match Demands — Ball in Play y Secuencias Largas por Partido</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Ball in Play por partido</div>
+      <div class="panel-desc">Minutos de balón en juego. Línea punteada + valor = promedio del torneo. Cada barra muestra su valor exacto.</div>
+      <div class="chart-wrap tall"><canvas id="chartBipMatch"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Secuencias &gt;60s por partido (ranking)</div>
+      <div class="panel-desc">Cantidad de secuencias de juego continuo mayores a 1 minuto. Línea punteada = promedio del torneo.</div>
+      <div class="chart-wrap xtall"><canvas id="chartLongRank"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILA 3 — Outcome analysis (NEW, real Verde/Rojo desde Tag Notes) -->
+<div class="section">
+  <div class="section-title"><span class="section-num">03</span> Clasificación por Jugada — Verde / Rojo (Tag Notes)</div>
+  <div class="grid-3">
+    <div class="panel">
+      <div class="panel-title">Secuencias Verde vs Rojo por tipo de jugada</div>
+      <div class="panel-desc">Columnas apiladas por outcome (Penal, Try, Scrum, Line Out, Drop Goal, Free Kick). Se actualiza con el filtro de Partido.</div>
+      <div class="chart-wrap tall"><canvas id="chartOutcomeStack"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">% de éxito (Verde)</div>
+      <div class="panel-desc">Sobre el total de secuencias clasificadas en el filtro actual.</div>
+      <div class="chart-wrap donut"><canvas id="chartOutcomeDonut"></canvas></div>
+      <div id="donutCenter" style="text-align:center; font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-top:-8px; margin-bottom:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILA 4 — Long sequences context -->
+<div class="section">
+  <div class="section-title"><span class="section-num">04</span> Contexto de Resultado y Distribución de Duración</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Ganados vs Perdidos — demanda de secuencias largas</div>
+      <div class="panel-desc">Comparación de promedios entre partidos ganados (🟢) y perdidos (🔴) — contexto de partido completo.</div>
+      <div class="chart-wrap tall"><canvas id="chartWL"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Distribución de duración de secuencias</div>
+      <div class="panel-desc">Todas las secuencias de BiP del torneo, por rango de duración.</div>
+      <div class="chart-wrap tall"><canvas id="chartDist"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILA 5 — Performance -->
+<div class="section">
+  <div class="section-title"><span class="section-num">05</span> Performance — Duración, Momento y Relación con BiP</div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Duración vs. momento del partido</div>
+      <div class="panel-desc">X = duración de la secuencia (s) · Y = minuto del partido · color = clasificación real Verde/Rojo (gris = sin clasificar).</div>
+      <div class="chart-wrap tall"><canvas id="chartScatterDurMin"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Ball in Play total vs. cantidad de secuencias &gt;60s</div>
+      <div class="panel-desc" id="corrDesc">Correlación de Pearson por partido.</div>
+      <div class="chart-wrap tall"><canvas id="chartScatterBipLong"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILA 6 — Timeline + heatmap -->
+<div class="section">
+  <div class="section-title"><span class="section-num">06</span> Match Timeline — Aparición de Secuencias Largas</div>
+  <div class="panel" style="margin-bottom:14px;">
+    <div class="panel-title">Línea de tiempo — todas las secuencias &gt;60s por partido</div>
+    <div class="panel-desc">Cada fila es un partido. Cada punto es una secuencia &gt;60s; tamaño = duración; color = clasificación real (gris = sin clasificar).</div>
+    <div class="tl-legend">
+      <span class="badge green"><span class="dot green"></span> Verde</span>
+      <span class="badge red"><span class="dot red"></span> Rojo</span>
+      <span class="badge grey"><span class="dot grey"></span> Sin clasificar</span>
+      <span style="color:var(--text-faint);">Tamaño del punto ∝ duración</span>
+    </div>
+    <div class="chart-wrap xtall"><canvas id="chartTimeline"></canvas></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Heatmap — Partido × Categoría de duración</div>
+    <div class="panel-desc">Cantidad de secuencias por rango de duración en cada partido.</div>
+    <div class="heatmap-scroll"><table class="heatmap" id="heatmapTable"></table></div>
+  </div>
+</div>
+
+<!-- FILA 7 — Insights -->
+<div class="section">
+  <div class="section-title"><span class="section-num">07</span> Key Insights — Hallazgo · Interpretación · Aplicación</div>
+  <div class="insights-grid" id="insightsGrid"></div>
+</div>
+
+<!-- Recommendations -->
+<div class="section">
+  <div class="section-title"><span class="section-num">08</span> Aplicación al Entrenamiento</div>
+  <div class="insights-grid" id="recsGrid"></div>
+</div>
+
+<!-- Table -->
+<div class="section">
+  <div class="section-title"><span class="section-num">09</span> Tabla de Secuencias &gt;60s (filtrable, click en encabezado para ordenar)</div>
+  <div class="table-wrap">
+    <table id="seqTable">
+      <thead>
+        <tr>
+          <th data-key="fecha">Fecha</th>
+          <th data-key="partido">Rival</th>
+          <th data-key="resultado">Resultado</th>
+          <th data-key="minute">Minuto</th>
+          <th data-key="start_mmss">Inicio</th>
+          <th data-key="end_mmss">Fin</th>
+          <th data-key="dur">Duración (s)</th>
+          <th data-key="category">Categoría</th>
+          <th data-key="color">Clasificación</th>
+          <th data-key="outcome">Jugada</th>
+        </tr>
+      </thead>
+      <tbody id="seqTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>San Isidro Club · Ball in Play / Secuencias Largas Dashboard · Fuente: planillas de sesión Top 14 URBA 2026 · Duración recalculada como Tag End − Tag Start · Clasificación Verde/Rojo por jugada tomada de Tag Notes (columna G) · Tipografía Mark Pro no disponible vía CDN público — sustituida por Manrope/Inter</footer>
+
+<script>
+const DATA = __DATA_JSON__;
+const CLUB_LOGOS = __LOGOS_JSON__;
+
+document.getElementById('headerLogo').src = CLUB_LOGOS['SIC_header'] || CLUB_LOGOS['SIC'];
+
+/* ---------- helpers ---------- */
+const fmt1 = (n)=> (Math.round(n*10)/10).toString();
+function toSec(t){
+  const parts = t.split(':').map(Number);
+  if(parts.length===3){ const [h,m,s]=parts; return h*3600+m*60+s; }
+  const [m,s]=parts; return m*60+s;
+}
+function clockToSec(t){ const [h,m,s]=t.split(':').map(Number); return h*3600+m*60+s; }
+function fmtMMSS(sec){ sec=Math.round(sec); const m=Math.floor(sec/60), s=sec%60; return `${m}:${s.toString().padStart(2,'0')}`; }
+function categorizeDur(d){
+  if(d<30) return '<30s'; if(d<45) return '30-45s'; if(d<60) return '45-60s';
+  if(d<90) return '60-90s'; if(d<120) return '90-120s'; return '>120s';
+}
+const OUTCOME_MAP = {'penal':'Penal','try':'Try','scrum':'Scrum','line out':'Line Out','drop in goal':'Drop Goal','drop':'Drop Goal','free kick':'Free Kick'};
+function parseNote(note){
+  note = (note||'').trim();
+  if(!note) return {color:null, outcome:null};
+  const idx = note.indexOf('-');
+  if(idx<0) return {color:null, outcome:null};
+  const colorRaw = note.slice(0,idx).trim().toLowerCase();
+  const outcomeRaw = note.slice(idx+1).trim().toLowerCase();
+  const color = colorRaw.startsWith('verde') ? 'green' : (colorRaw.startsWith('rojo') ? 'red' : null);
+  const outcome = OUTCOME_MAP[outcomeRaw] || (outcomeRaw.charAt(0).toUpperCase()+outcomeRaw.slice(1));
+  return {color, outcome};
+}
+const CLUB_KEY_MAP = {'LPRC':'La_Plata','LMRC':'Los_Matreros','Los Tilos':'Los_Tilos','Newman':'Newman','Alumni':'Alumni','Champagnat':'Champagnat','BAC':'BAC','CUBA':'CUBA','BA':'BA','CASI':'CASI','Hindu':'Hindu','Plaza':'Plaza','CRBV':'CRBV'};
+function clubKey(partido){
+  let base = partido.trim();
+  ['  2',' 2',' 3',' II',' III'].forEach(suf=>{ if(base.endsWith(suf)) base = base.slice(0, -suf.length); });
+  return CLUB_KEY_MAP[base] || base;
+}
+function matchLabel(m){ return `F${m.fecha} · ${m.partido}`; }
+function logoImg(clubKeyName, size){
+  const src = CLUB_LOGOS[clubKeyName];
+  if(!src) return '';
+  return `<img src="${src}" style="width:${size||16}px;height:${size||16}px;object-fit:contain;border-radius:2px;vertical-align:middle;">`;
+}
+
+/* ---------- Colors (resolved after CSS applied) ---------- */
+let colorGreen, colorRed, colorGrey, colorAccent, colorAccent2, colorAmber, colorTextDim, colorBorder;
+
+/* ---------- CSV parsing (for "Actualizar datos") ---------- */
+function parseCSV(text){
+  // simple RFC4180-ish parser handling quoted fields
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; } else { inQuotes = false; }
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  if(!rows.length) return [];
+  const headers = rows[0].map(h=>h.trim());
+  const objs = [];
+  for(let r=1;r<rows.length;r++){
+    if(rows[r].length===1 && rows[r][0]==='') continue;
+    const obj = {};
+    headers.forEach((h,idx)=>{ obj[h] = (rows[r][idx]!==undefined ? rows[r][idx] : '').trim(); });
+    objs.push(obj);
+  }
+  return objs;
+}
+
+function buildMatchFromRows(rows, fallbackFecha){
+  const bipRows = rows.filter(r => (r['Tag Description']||'').trim() === 'Ball in Play');
+  if(!bipRows.length) return null;
+  const partido = (bipRows[0]['Partido']||'').trim();
+  const resultado = (bipRows[0]['Resultado']||bipRows[0]['Resultado ']||'').trim();
+  const rueda = (bipRows[0]['Rueda']||'').trim();
+  const etapa = (bipRows[0]['Etapa']||'').trim();
+  const sessionStart = (bipRows[0]['Session Start']||'').trim();
+  const sessionEnd = (bipRows[0]['Session End']||'').trim();
+  const dateStr = (bipRows[0]['Session Start Date']||'').trim();
+  const sessionName = (bipRows[0]['Session Name']||'').trim();
+  let fecha = fallbackFecha;
+  const m = sessionName.match(/(\d+)/);
+  if(m) fecha = parseInt(m[1],10);
+  const ck = clubKey(partido);
+
+  let sstart=null, send=null, sessionDur=null;
+  try{ sstart=clockToSec(sessionStart); send=clockToSec(sessionEnd); sessionDur=send-sstart; if(sessionDur<0) sessionDur+=86400; }catch(e){}
+
+  const seqs = [];
+  bipRows.forEach(r=>{
+    try{
+      const st = toSec(r['Tag Start']); const en = toSec(r['Tag End']);
+      const repDurStr = (r['Tag Duration (secs)']||'').trim();
+      const dur = repDurStr ? Math.round(parseFloat(repDurStr)*10)/10 : Math.round((en-st)*10)/10;
+      const {color, outcome} = parseNote(r['Tag Notes']);
+      seqs.push({start:st, end:en, dur, note_color:color, note_outcome:outcome});
+    }catch(e){}
+  });
+  seqs.sort((a,b)=>a.start-b.start);
+
+  const totalBip = seqs.reduce((a,s)=>a+s.dur,0);
+  const pctBip = sessionDur ? totalBip/sessionDur*100 : null;
+  const matchColor = resultado==='Ganado' ? 'green' : (resultado==='Perdido' ? 'red' : 'neutral');
+
+  const longSeqs = [];
+  seqs.forEach(s=>{
+    if(s.dur>60){
+      const minute = s.start/60.0;
+      let cat = s.dur<=90 ? '60-90s' : (s.dur<=120 ? '90-120s' : '>120s');
+      longSeqs.push({
+        start:s.start, end:s.end, dur:s.dur, start_mmss:fmtMMSS(s.start), end_mmss:fmtMMSS(s.end),
+        minute:Math.round(minute*10)/10, category:cat, match_color:matchColor,
+        color: s.note_color || 'unclassified', outcome: s.note_outcome
+      });
+    }
+  });
+
+  const longDurs = longSeqs.map(s=>s.dur);
+  const totalLongTime = longDurs.reduce((a,b)=>a+b,0);
+
+  return {
+    fecha, date:dateStr, partido, club_key:ck, resultado, rueda, etapa,
+    session_start:sessionStart, session_end:sessionEnd,
+    session_dur_sec: sessionDur, session_dur_mmss: sessionDur!==null ? fmtMMSS(sessionDur):null,
+    total_bip_sec: Math.round(totalBip*10)/10, total_bip_mmss: fmtMMSS(totalBip),
+    total_bip_min: Math.round(totalBip/60*100)/100, pct_bip: pctBip!==null ? Math.round(pctBip*10)/10 : null,
+    n_sequences: seqs.length, n_long: longSeqs.length,
+    avg_long_dur: longDurs.length ? Math.round(longDurs.reduce((a,b)=>a+b,0)/longDurs.length*10)/10 : 0,
+    max_long_dur: longDurs.length ? Math.max(...longDurs) : 0,
+    min_long_dur: longDurs.length ? Math.min(...longDurs) : 0,
+    total_long_time: Math.round(totalLongTime*10)/10,
+    pct_bip_from_long: totalBip ? Math.round(totalLongTime/totalBip*1000)/10 : 0,
+    color: matchColor,
+    all_sequences: seqs.map(s=>({start:s.start,end:s.end,dur:s.dur})),
+    long_sequences: longSeqs,
+    _uploaded:true,
+  };
+}
+
+function ingestCSVFiles(fileList){
+  const files = Array.from(fileList);
+  let remaining = files.length;
+  let added = 0, skipped = 0;
+  if(!remaining){ return; }
+  document.getElementById('uploadStatus').textContent = `Procesando ${remaining} archivo(s)...`;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      try{
+        const rows = parseCSV(e.target.result);
+        const maxFecha = Math.max(0, ...DATA.matches.map(m=>m.fecha));
+        const match = buildMatchFromRows(rows, maxFecha+1);
+        if(match){
+          // avoid exact duplicate (same fecha+partido already present from upload)
+          const dup = DATA.matches.some(m=> m.fecha===match.fecha && m.partido===match.partido && m.session_start===match.session_start);
+          if(!dup){ DATA.matches.push(match); added++; } else { skipped++; }
+        } else { skipped++; }
+      }catch(err){ console.error(err); skipped++; }
+      remaining--;
+      if(remaining===0){
+        recomputeDerived();
+        rebuildPartidoFilter();
+        renderInsights();
+        renderAll();
+        document.getElementById('uploadStatus').textContent = `${added} partido(s) agregado(s)${skipped? ', '+skipped+' omitido(s)':''}.`;
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+/* ---------- Derived aggregates (recomputed whenever DATA.matches changes) ---------- */
+function recomputeDerived(){
+  const matches = DATA.matches;
+
+  // tagged_sequences (flat, ALL durations) rebuilt from all_sequences + long_sequences note info
+  // we reconstruct by re-scanning: long_sequences already carry color/outcome; for short tagged ones we don't retain note info
+  // in all_sequences for uploaded matches unless dur>60 -- so we keep DATA.tagged_sequences as-is for preloaded data
+  // and append tagged long-sequences from new matches (short tagged ones from uploads are rare/edge case, acceptable gap).
+  matches.filter(m=>m._uploaded).forEach(m=>{
+    m.long_sequences.forEach(s=>{
+      if(s.color==='green' || s.color==='red'){
+        const already = DATA.tagged_sequences.some(t=> t.fecha===m.fecha && t.partido===m.partido && t.minute===s.minute && t.dur===s.dur);
+        if(!already){
+          DATA.tagged_sequences.push({fecha:m.fecha, partido:m.partido, club_key:m.club_key, resultado:m.resultado,
+            color:s.color, outcome:s.outcome, dur:s.dur, minute:s.minute, start_mmss:s.start_mmss, end_mmss:s.end_mmss});
+        }
+      }
+    });
+    m._uploaded = false; // mark processed
+  });
+
+  const bipVals = matches.map(m=>m.total_bip_min);
+  const mean = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+  const meanBip = mean(bipVals);
+  const sorted = [...bipVals].sort((a,b)=>a-b);
+  const medianBip = sorted.length%2 ? sorted[(sorted.length-1)/2] : (sorted[sorted.length/2-1]+sorted[sorted.length/2])/2;
+  const maxBip = Math.max(...bipVals), minBip = Math.min(...bipVals);
+  const variance = mean(bipVals.map(v=>(v-meanBip)**2));
+  const stdBip = Math.sqrt(variance * bipVals.length/(bipVals.length-1));
+  const cvBip = stdBip/meanBip*100;
+  const maxMatch = matches.find(m=>m.total_bip_min===maxBip);
+  const minMatch = matches.find(m=>m.total_bip_min===minBip);
+
+  const allLong = matches.flatMap(m=>m.long_sequences);
+  const nLongTotal = allLong.length;
+  const maxLongSeq = allLong.reduce((a,b)=> b.dur>a.dur?b:a, allLong[0]);
+  const maxLongSeqFecha = matches.find(m=>m.long_sequences.includes(maxLongSeq))?.fecha;
+  const nGreenMatches = matches.filter(m=>m.color==='green').length;
+  const nRedMatches = matches.filter(m=>m.color==='red').length;
+
+  const tagged = DATA.tagged_sequences;
+  const nTagged = tagged.length;
+  const nTaggedGreen = tagged.filter(s=>s.color==='green').length;
+  const pctVerdeReal = nTagged ? Math.round(nTaggedGreen/nTagged*1000)/10 : 0;
+
+  const allSeqsFlat = matches.flatMap(m=>m.all_sequences);
+  const catOrder = ['<30s','30-45s','45-60s','60-90s','90-120s','>120s'];
+  const catStats = Object.fromEntries(catOrder.map(c=>[c,0]));
+  allSeqsFlat.forEach(s=> catStats[categorizeDur(s.dur)]++ );
+  const totalSeqsAll = allSeqsFlat.length;
+  const catDistribution = catOrder.map(c=>({category:c, count:catStats[c], pct_of_total: totalSeqsAll? Math.round(catStats[c]/totalSeqsAll*1000)/10:0}));
+
+  const xs = matches.map(m=>m.total_bip_min), ys = matches.map(m=>m.n_long);
+  const mx = mean(xs), my = mean(ys);
+  const cov = xs.reduce((a,x,i)=>a+(x-mx)*(ys[i]-my),0);
+  const sx = Math.sqrt(xs.reduce((a,x)=>a+(x-mx)**2,0)), sy = Math.sqrt(ys.reduce((a,y)=>a+(y-my)**2,0));
+  const pearsonR = (sx*sy) ? cov/(sx*sy) : null;
+
+  const rankBip = [...matches].sort((a,b)=>b.total_bip_min-a.total_bip_min)
+    .map(m=>({fecha:m.fecha,partido:m.partido,club_key:m.club_key,total_bip_min:m.total_bip_min,resultado:m.resultado}));
+  const rankLong = [...matches].sort((a,b)=>b.n_long-a.n_long)
+    .map(m=>({fecha:m.fecha,partido:m.partido,club_key:m.club_key,n_long:m.n_long,resultado:m.resultado}));
+
+  const won = matches.filter(m=>m.color==='green'), lost = matches.filter(m=>m.color==='red');
+  const avgKey = (arr,key)=> arr.length ? Math.round(mean(arr.map(m=>m[key]))*100)/100 : 0;
+  const wlCompare = {
+    won:{n:won.length, avg_bip:avgKey(won,'total_bip_min'), avg_n_long:avgKey(won,'n_long'), avg_long_dur:avgKey(won,'avg_long_dur'), avg_pct_bip_from_long:avgKey(won,'pct_bip_from_long')},
+    lost:{n:lost.length, avg_bip:avgKey(lost,'total_bip_min'), avg_n_long:avgKey(lost,'n_long'), avg_long_dur:avgKey(lost,'avg_long_dur'), avg_pct_bip_from_long:avgKey(lost,'pct_bip_from_long')},
+  };
+
+  const outcomeOrder = ['Penal','Try','Scrum','Line Out','Drop Goal','Free Kick'];
+  const outcomeBreakdown = [];
+  outcomeOrder.forEach(o=>{
+    const g = tagged.filter(s=>s.outcome===o && s.color==='green').length;
+    const r = tagged.filter(s=>s.outcome===o && s.color==='red').length;
+    if(g+r>0) outcomeBreakdown.push({outcome:o, green:g, red:r, total:g+r, pct_green:Math.round(g/(g+r)*1000)/10});
+  });
+  // include any outcomes not in the canonical order (from uploaded data)
+  const extraOutcomes = [...new Set(tagged.map(s=>s.outcome))].filter(o=>o && !outcomeOrder.includes(o));
+  extraOutcomes.forEach(o=>{
+    const g = tagged.filter(s=>s.outcome===o && s.color==='green').length;
+    const r = tagged.filter(s=>s.outcome===o && s.color==='red').length;
+    if(g+r>0) outcomeBreakdown.push({outcome:o, green:g, red:r, total:g+r, pct_green:Math.round(g/(g+r)*1000)/10});
+  });
+
+  DATA.kpi = {
+    mean_bip:Math.round(meanBip*100)/100, median_bip:Math.round(medianBip*100)/100,
+    max_bip:Math.round(maxBip*100)/100, max_bip_match:`Fecha ${maxMatch.fecha} vs ${maxMatch.partido}`,
+    min_bip:Math.round(minBip*100)/100, min_bip_match:`Fecha ${minMatch.fecha} vs ${minMatch.partido}`,
+    std_bip:Math.round(stdBip*100)/100, cv_bip:Math.round(cvBip*10)/10, range_bip:Math.round((maxBip-minBip)*100)/100,
+    n_long_total:nLongTotal, max_long_seq_dur:maxLongSeq.dur, max_long_seq_match:`Fecha ${maxLongSeqFecha}`,
+    n_green_matches:nGreenMatches, n_red_matches:nRedMatches,
+    pearson_r: pearsonR!==null ? Math.round(pearsonR*1000)/1000 : null, n_matches: matches.length,
+    n_tagged:nTagged, n_tagged_green:nTaggedGreen, pct_verde_real:pctVerdeReal,
+  };
+  DATA.cat_distribution = catDistribution;
+  DATA.rank_bip = rankBip; DATA.rank_long = rankLong;
+  DATA.wl_compare = wlCompare;
+  DATA.outcome_breakdown = outcomeBreakdown;
+}
+
+/* ---------- filters state ---------- */
+/* state.partido / state.dur are ARRAYS of selected values. An empty array means "todos/as" (no filter). */
+let state = { partido:[], resultado:'all', dur:[] };
+
+function rebuildPartidoFilter(){
+  const list = document.getElementById('partidoMselList');
+  const prevChecked = new Set(state.partido);
+  list.innerHTML = '';
+  DATA.matches.slice().sort((a,b)=>a.fecha-b.fecha).forEach(m=>{
+    const id = `partido-opt-${m.fecha}`;
+    const logo = CLUB_LOGOS[m.club_key];
+    const item = document.createElement('label');
+    item.className = 'msel-item';
+    item.innerHTML = `<input type="checkbox" id="${id}" value="${m.fecha}" ${prevChecked.has(String(m.fecha))?'checked':''}>
+      ${logo ? `<img class="msel-logo" src="${logo}">` : ''}
+      <span>F${m.fecha} · ${m.partido} (${m.resultado==='Ganado'?'🟢':'🔴'})</span>`;
+    list.appendChild(item);
+  });
+  list.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{ syncMselState('partido'); });
+  });
+  updateMselButton('partido');
+}
+
+function syncMselState(target){
+  const list = document.getElementById(target==='partido' ? 'partidoMselList' : 'durMselList');
+  const checked = [...list.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>cb.value);
+  state[target] = checked;
+  updateMselButton(target);
+  renderAll();
+}
+
+function updateMselButton(target){
+  const btn = document.getElementById(target==='partido' ? 'partidoMselBtn' : 'durMselBtn');
+  const sel = state[target];
+  const allLabel = target==='partido' ? 'Todos' : 'Todas';
+  if(!sel.length){
+    btn.textContent = allLabel + ' ▾';
+    btn.classList.remove('has-selection');
+  } else if(sel.length===1){
+    let label = sel[0];
+    if(target==='partido'){
+      const m = DATA.matches.find(mm=>String(mm.fecha)===String(sel[0]));
+      if(m) label = `F${m.fecha} · ${m.partido}`;
+    }
+    btn.textContent = label + ' ▾';
+    btn.classList.add('has-selection');
+  } else {
+    btn.textContent = `${sel.length} seleccionados ▾`;
+    btn.classList.add('has-selection');
+  }
+}
+
+function toggleMselPanel(panelId){
+  const panel = document.getElementById(panelId);
+  const isHidden = panel.hasAttribute('hidden');
+  document.querySelectorAll('.msel-panel').forEach(p=> p.setAttribute('hidden',''));
+  if(isHidden) panel.removeAttribute('hidden');
+}
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.msel-wrap')){
+    document.querySelectorAll('.msel-panel').forEach(p=> p.setAttribute('hidden',''));
+  }
+});
+document.getElementById('partidoMselBtn').addEventListener('click', (e)=>{ e.stopPropagation(); toggleMselPanel('partidoMselPanel'); });
+document.getElementById('durMselBtn').addEventListener('click', (e)=>{ e.stopPropagation(); toggleMselPanel('durMselPanel'); });
+document.querySelectorAll('.msel-action').forEach(a=>{
+  a.addEventListener('click', ()=>{
+    const target = a.dataset.target;
+    const list = document.getElementById(target==='partido' ? 'partidoMselList' : 'durMselList');
+    const checkAll = a.dataset.action === 'all';
+    list.querySelectorAll('input[type="checkbox"]').forEach(cb=> cb.checked = checkAll);
+    syncMselState(target);
+  });
+});
+document.getElementById('durMselList').querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+  cb.addEventListener('change', ()=> syncMselState('dur'));
+});
+
+function getFilteredMatches(){
+  return DATA.matches.filter(m=>{
+    if(state.partido.length && !state.partido.includes(String(m.fecha))) return false;
+    if(state.resultado!=='all' && m.resultado!==state.resultado) return false;
+    return true;
+  });
+}
+function getFilteredLongSeqs(){
+  const ms = getFilteredMatches();
+  let seqs = [];
+  ms.forEach(m=> m.long_sequences.forEach(s=> seqs.push(Object.assign({}, s, {fecha:m.fecha, partido:m.partido, club_key:m.club_key, resultado:m.resultado}))));
+  if(state.dur.length) seqs = seqs.filter(s=>state.dur.includes(s.category));
+  return seqs;
+}
+function getFilteredTagged(){
+  let seqs = DATA.tagged_sequences;
+  if(state.partido.length) seqs = seqs.filter(s=>state.partido.includes(String(s.fecha)));
+  if(state.resultado!=='all') seqs = seqs.filter(s=>s.resultado===state.resultado);
+  return seqs;
+}
+
+/* ---------- Methodology text ---------- */
+function renderMetho(){
+  const issuesHtml = DATA.issues.map(i=>`<li>${i}</li>`).join('');
+  document.getElementById('methoBody').innerHTML = `
+    <p><b>Clasificación real Verde/Rojo por jugada:</b> la columna <b>Tag Notes</b> contiene el resultado táctico de cada secuencia (ej. "Verde - Penal", "Rojo - Try", "Verde - Scrum", "Rojo - Line Out", "Drop Goal", "Free Kick"). Se usó esta columna para clasificar cada secuencia — <b>${DATA.kpi.n_tagged} de ${DATA.matches.reduce((a,m)=>a+m.n_sequences,0)}</b> secuencias del torneo están etiquetadas (${DATA.kpi.pct_verde_real}% Verde sobre las clasificadas). Sobre las secuencias &gt;60s puntualmente, la cobertura es casi total. Las secuencias sin etiqueta se muestran en gris ("Sin clasificar") en vez de forzar una categoría.</p>
+    <p><b>Contexto de partido (Ganado/Perdido):</b> se mantiene como una dimensión aparte — describe la demanda física del partido completo, no el resultado de cada jugada individual. Se usa para los gráficos de BiP por partido, ranking de secuencias largas y comparación Ganados vs Perdidos.</p>
+    <p><b>Duración de cada secuencia:</b> se usa el valor de la columna <b>"Tag Duration (secs)"</b> como fuente principal (coincide con Tag End − Tag Start en la gran mayoría de las filas). En <b>Fecha 2</b> se detectaron timestamps de Tag Start/Tag End superpuestos entre filas consecutivas, lo que inflaba el Ball in Play a ~37.5' si se calculaba como (End − Start); usando "Tag Duration (secs)" el valor correcto es <b>~28.7'</b>, consistente con el partido real. Por eso esta columna se usa como fuente principal en todo el torneo, con (Tag End − Tag Start) solo como respaldo en las pocas filas sin valor de duración cargado:</p>
+    <ul>${issuesHtml}</ul>
+    <p><b>Tipografía:</b> "Mark Pro" es una fuente comercial sin distribución en CDNs públicos, por lo que se sustituyó por <b>Manrope</b> (títulos/KPIs) e <b>Inter</b> (texto), con una paleta cercana en peso y geometría. Si tenés los archivos .woff/.woff2 con la licencia correspondiente, los puedo incorporar vía @font-face.</p>
+    <p><b>Colores:</b> paleta tomada del isotipo de San Isidro Club (celeste #2390CF, negro, blanco) sobre fondo oscuro tipo sports-science; verde/rojo se reservan para la clasificación de jugadas.</p>
+  `;
+}
+
+/* ---------- Chart instances ---------- */
+let charts = {};
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+/* plugin: draws club logos under x-axis category labels for a bar chart */
+const logoCache = {};
+function getLogoImage(clubKeyName){
+  if(!clubKeyName) return null;
+  if(logoCache[clubKeyName]) return logoCache[clubKeyName];
+  const src = CLUB_LOGOS[clubKeyName];
+  if(!src) return null;
+  const img = new Image(); img.src = src;
+  logoCache[clubKeyName] = img;
+  return img;
+}
+/* Logos drawn in a reserved gutter (via ticks.padding on the relevant scale) so they
+   never overlap the axis text — the gutter size must exceed LOGO_SIZE + a small buffer,
+   and the corresponding ticks.padding in the chart config must exceed the gutter. */
+function xLogoPlugin(clubKeys){
+  const LOGO_SIZE = 16;
+  return {
+    id:'xLogoPlugin',
+    afterDraw(chart){
+      const {ctx, chartArea, scales:{x}} = chart;
+      if(!x) return;
+      clubKeys.forEach((ck,i)=>{
+        const img = getLogoImage(ck);
+        if(!img || !img.complete || !img.naturalWidth) return;
+        const xPos = x.getPixelForTick(i);
+        ctx.drawImage(img, xPos-LOGO_SIZE/2, chartArea.bottom+6, LOGO_SIZE, LOGO_SIZE);
+      });
+    }
+  };
+}
+function yLogoPlugin(clubKeys){
+  const LOGO_SIZE = 15;
+  return {
+    id:'yLogoPlugin',
+    afterDraw(chart){
+      const {ctx, chartArea, scales:{y}} = chart;
+      if(!y) return;
+      clubKeys.forEach((ck,i)=>{
+        const img = getLogoImage(ck);
+        if(!img || !img.complete || !img.naturalWidth) return;
+        const yPos = y.getPixelForTick(i);
+        ctx.drawImage(img, chartArea.left-LOGO_SIZE-8, yPos-LOGO_SIZE/2, LOGO_SIZE, LOGO_SIZE);
+      });
+    }
+  };
+}
+/* Variant for LINEAR y-scales (e.g. the bubble timeline, which has min:-1 as padding).
+   getPixelForTick(i) indexes into the scale's internal tick array, which includes that
+   padding tick — so for a linear scale it is off by one vs. the row each data point/label
+   actually sits on. getPixelForValue(i) maps the real data value (row index) directly,
+   which is what the tick-label callback also uses, so logo and text line up exactly. */
+function yLogoPluginLinear(clubKeys){
+  const LOGO_SIZE = 15;
+  return {
+    id:'yLogoPluginLinear',
+    afterDraw(chart){
+      const {ctx, chartArea, scales:{y}} = chart;
+      if(!y) return;
+      clubKeys.forEach((ck,i)=>{
+        const img = getLogoImage(ck);
+        if(!img || !img.complete || !img.naturalWidth) return;
+        const yPos = y.getPixelForValue(i);
+        ctx.drawImage(img, chartArea.left-LOGO_SIZE-8, yPos-LOGO_SIZE/2, LOGO_SIZE, LOGO_SIZE);
+      });
+    }
+  };
+}
+
+/* ---------- value-label & reference-line plugins ("valores de referencia") ---------- */
+function barValueLabelPlugin(opts={}){
+  const skipTypes = opts.skipTypes || ['line'];
+  return {
+    id:'barValueLabelPlugin-'+Math.random().toString(36).slice(2),
+    afterDatasetsDraw(chart){
+      const {ctx} = chart;
+      const indexAxisY = chart.options.indexAxis === 'y';
+      chart.data.datasets.forEach((ds, dsIndex)=>{
+        if(skipTypes.includes(ds.type)) return;
+        const meta = chart.getDatasetMeta(dsIndex);
+        if(meta.hidden) return;
+        meta.data.forEach((el, i)=>{
+          const raw = ds.data[i];
+          if(raw===undefined || raw===null || raw===0) return;
+          const pos = el.tooltipPosition ? el.tooltipPosition() : {x:el.x,y:el.y};
+          const label = opts.formatter ? opts.formatter(raw, dsIndex, i) : (Number.isInteger(raw)?raw:Math.round(raw*10)/10);
+          ctx.save();
+          ctx.fillStyle = opts.color || '#c7d1da';
+          ctx.font = opts.font || "10px ui-monospace, monospace";
+          if(indexAxisY){
+            ctx.textAlign='left'; ctx.textBaseline='middle';
+            ctx.fillText(String(label), pos.x+6, pos.y);
+          } else {
+            ctx.textAlign='center'; ctx.textBaseline='bottom';
+            ctx.fillText(String(label), pos.x, pos.y-4);
+          }
+          ctx.restore();
+        });
+      });
+    }
+  };
+}
+function hRefLinePlugin(getY, getText, color){
+  return {
+    id:'hRefLinePlugin-'+Math.random().toString(36).slice(2),
+    afterDraw(chart){
+      const {ctx, chartArea, scales:{y}} = chart;
+      if(!y) return;
+      const yPix = y.getPixelForValue(getY());
+      if(yPix < chartArea.top || yPix > chartArea.bottom) return;
+      ctx.save();
+      ctx.fillStyle = color; ctx.font = "10px ui-monospace, monospace"; ctx.textAlign='right'; ctx.textBaseline='bottom';
+      ctx.fillText(getText(), chartArea.right-2, yPix-4);
+      ctx.restore();
+    }
+  };
+}
+function vRefLinePlugin(getX, getText, color){
+  return {
+    id:'vRefLinePlugin-'+Math.random().toString(36).slice(2),
+    afterDraw(chart){
+      const {ctx, chartArea, scales:{x}} = chart;
+      if(!x) return;
+      const xPix = x.getPixelForValue(getX());
+      if(xPix < chartArea.left || xPix > chartArea.right) return;
+      ctx.save();
+      ctx.strokeStyle = color; ctx.setLineDash([5,4]); ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.moveTo(xPix, chartArea.top); ctx.lineTo(xPix, chartArea.bottom); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = color; ctx.font = "10px ui-monospace, monospace"; ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.fillText(getText(), xPix, chartArea.top-4);
+      ctx.restore();
+    }
+  };
+}
+function stackTotalLabelPlugin(color){
+  return {
+    id:'stackTotalLabelPlugin-'+Math.random().toString(36).slice(2),
+    afterDatasetsDraw(chart){
+      const {ctx} = chart;
+      const dsCount = chart.data.datasets.length;
+      const n = chart.data.labels.length;
+      const topMeta = chart.getDatasetMeta(dsCount-1);
+      for(let i=0;i<n;i++){
+        let total=0;
+        for(let d=0; d<dsCount; d++){ total += (chart.data.datasets[d].data[i]||0); }
+        if(total===0) continue;
+        const el = topMeta.data[i];
+        if(!el) continue;
+        const pos = el.tooltipPosition();
+        ctx.save();
+        ctx.fillStyle = color; ctx.font = "10px ui-monospace, monospace"; ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText(`n=${total}`, pos.x, pos.y-16);
+        ctx.restore();
+      }
+    }
+  };
+}
+function stackedSegmentLabelPlugin(){
+  return {
+    id:'stackedSegmentLabelPlugin-'+Math.random().toString(36).slice(2),
+    afterDatasetsDraw(chart){
+      const {ctx} = chart;
+      chart.data.datasets.forEach((ds, dsIndex)=>{
+        const meta = chart.getDatasetMeta(dsIndex);
+        if(meta.hidden) return;
+        meta.data.forEach((el, i)=>{
+          const value = ds.data[i];
+          if(!value) return;
+          const top = Math.min(el.y, el.base), bottom = Math.max(el.y, el.base);
+          if(bottom-top < 12) return; // too thin to fit a label
+          ctx.save();
+          ctx.fillStyle = 'rgba(6,10,14,.8)';
+          ctx.font = "10px ui-monospace, monospace";
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(String(value), el.x, (top+bottom)/2);
+          ctx.restore();
+        });
+      });
+    }
+  };
+}
+function linreg(points){
+  const n = points.length;
+  if(n<2) return null;
+  const mx = points.reduce((a,p)=>a+p.x,0)/n, my = points.reduce((a,p)=>a+p.y,0)/n;
+  const num = points.reduce((a,p)=>a+(p.x-mx)*(p.y-my),0);
+  const den = points.reduce((a,p)=>a+(p.x-mx)**2,0);
+  const slope = den ? num/den : 0;
+  return {slope, intercept: my-slope*mx};
+}
+
+function renderKPIs(){
+  const k = DATA.kpi;
+  const cards = [
+    {label:'BiP Promedio', value:k.mean_bip+"'", sub:`Mediana ${k.median_bip}' · DE ${k.std_bip}' (CV ${k.cv_bip}%)`, cls:'accent'},
+    {label:'BiP Máximo', value:k.max_bip+"'", sub:k.max_bip_match, cls:'sky-c'},
+    {label:'BiP Mínimo', value:k.min_bip+"'", sub:`${k.min_bip_match} · rango ${k.range_bip}'`, cls:'sky-c'},
+    {label:'Secuencias >1\'', value:k.n_long_total, sub:`Máx individual ${k.max_long_seq_dur}s (${k.max_long_seq_match})`, cls:'amber-c'},
+    {label:'% Verde (real)', value:k.pct_verde_real+'%', sub:`${k.n_tagged_green}/${k.n_tagged} secuencias clasificadas`, cls:'green-c'},
+  ];
+  document.getElementById('kpiRow').innerHTML = cards.map(c=>`
+    <div class="kpi-card ${c.cls}"><div class="kpi-label">${c.label}</div><div class="kpi-value">${c.value}</div><div class="kpi-sub">${c.sub}</div></div>`).join('');
+}
+
+function renderBipMatch(){
+  destroyChart('bip');
+  const ms = getFilteredMatches().slice().sort((a,b)=>a.fecha-b.fecha);
+  const avg = DATA.kpi.mean_bip;
+  const ctx = document.getElementById('chartBipMatch');
+  charts.bip = new Chart(ctx, {
+    data:{ labels: ms.map(m=>`F${m.fecha}`),
+      datasets:[
+        {type:'bar', label:'BiP (min)', data: ms.map(m=>m.total_bip_min),
+          backgroundColor: ms.map(m=> m.color==='green'? 'rgba(52,211,153,.55)':'rgba(251,113,133,.55)'), borderRadius:3, barPercentage:.7},
+        {type:'line', label:'Promedio', data: ms.map(()=>avg), borderColor:colorAccent, borderDash:[5,4], pointRadius:0, borderWidth:1.5}
+      ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{
+        title:(items)=> ms[items[0].dataIndex] ? `Fecha ${ms[items[0].dataIndex].fecha} vs ${ms[items[0].dataIndex].partido}` : '',
+        label:(c)=> c.dataset.label==='Promedio'? `Promedio: ${avg}'` : `BiP: ${c.raw}' (${ms[c.dataIndex].resultado})`}}},
+      scales:{ x:{ticks:{maxRotation:0,minRotation:0,autoSkip:false,font:{size:10},padding:30}, grid:{display:false}},
+               y:{title:{display:true,text:'minutos', font:{size:10}}, grid:{color:colorBorder}} }
+    },
+    plugins:[xLogoPlugin(ms.map(m=>m.club_key)),
+      barValueLabelPlugin({skipTypes:['line'], formatter:(v)=>v.toFixed(1)+"'"}),
+      hRefLinePlugin(()=>avg, ()=>`Prom. ${avg}'`, colorAccent2)]
+  });
+}
+
+function renderLongRank(){
+  destroyChart('long');
+  const ms = getFilteredMatches().slice().sort((a,b)=>b.n_long-a.n_long);
+  const avgNLong = Math.round((DATA.matches.reduce((a,m)=>a+m.n_long,0)/DATA.matches.length)*10)/10;
+  const ctx = document.getElementById('chartLongRank');
+  charts.long = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: ms.map(matchLabel),
+      datasets:[{ label:'Secuencias >60s', data: ms.map(m=>m.n_long),
+        backgroundColor: ms.map(m=> m.color==='green'? 'rgba(52,211,153,.65)':'rgba(251,113,133,.65)'), borderRadius:3 }]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:20, right:34}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`${c.raw} secuencias · ${ms[c.dataIndex].resultado}`}}},
+      scales:{ x:{grid:{color:colorBorder}}, y:{ticks:{font:{size:9.5}, padding:32}, grid:{display:false}} },
+      datasets:{ bar:{ barPercentage:.82, categoryPercentage:.9 } }
+    },
+    plugins:[yLogoPlugin(ms.map(m=>m.club_key)),
+      barValueLabelPlugin({}),
+      vRefLinePlugin(()=>avgNLong, ()=>`Prom. ${avgNLong}`, colorAccent2)]
+  });
+}
+
+function renderOutcomeStack(){
+  destroyChart('outcomeStack');
+  const tagged = getFilteredTagged();
+  const outcomes = [...new Set(tagged.map(s=>s.outcome))].filter(Boolean);
+  const preferredOrder = ['Penal','Try','Scrum','Line Out','Drop Goal','Free Kick'];
+  outcomes.sort((a,b)=> preferredOrder.indexOf(a) - preferredOrder.indexOf(b));
+  const greenData = outcomes.map(o=> tagged.filter(s=>s.outcome===o && s.color==='green').length);
+  const redData = outcomes.map(o=> tagged.filter(s=>s.outcome===o && s.color==='red').length);
+  const ctx = document.getElementById('chartOutcomeStack');
+  charts.outcomeStack = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:outcomes, datasets:[
+      {label:'Verde', data:greenData, backgroundColor:'rgba(52,211,153,.75)', borderRadius:3, stack:'s'},
+      {label:'Rojo', data:redData, backgroundColor:'rgba(251,113,133,.75)', borderRadius:3, stack:'s'},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:18}},
+      plugins:{legend:{position:'top', labels:{boxWidth:10,font:{size:10.5}}}},
+      scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:colorBorder}, title:{display:true,text:'secuencias', font:{size:10}}} }
+    },
+    plugins:[stackedSegmentLabelPlugin(), stackTotalLabelPlugin(colorTextDim)]
+  });
+}
+
+function renderOutcomeDonut(){
+  destroyChart('outcomeDonut');
+  const tagged = getFilteredTagged();
+  const green = tagged.filter(s=>s.color==='green').length;
+  const red = tagged.filter(s=>s.color==='red').length;
+  const total = green+red;
+  const pct = total ? Math.round(green/total*1000)/10 : 0;
+  const ctx = document.getElementById('chartOutcomeDonut');
+  charts.outcomeDonut = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:['Verde','Rojo'], datasets:[{ data:[green,red], backgroundColor:['rgba(52,211,153,.85)','rgba(251,113,133,.85)'], borderWidth:0 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'72%',
+      plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10.5}}}}
+    }
+  });
+  document.getElementById('donutCenter').textContent = total ? `${pct}% de éxito · n=${total}` : 'Sin secuencias clasificadas en este filtro';
+}
+
+function renderWL(){
+  destroyChart('wl');
+  const wl = DATA.wl_compare;
+  const ctx = document.getElementById('chartWL');
+  charts.wl = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:['BiP promedio (min)','Secuencias >60s (prom.)','Duración prom. secuencia (s)','% BiP explicado por secuencias largas'],
+      datasets:[
+        {label:`Ganados (n=${wl.won.n})`, data:[wl.won.avg_bip, wl.won.avg_n_long, wl.won.avg_long_dur, wl.won.avg_pct_bip_from_long], backgroundColor:'rgba(52,211,153,.65)', borderRadius:3},
+        {label:`Perdidos (n=${wl.lost.n})`, data:[wl.lost.avg_bip, wl.lost.avg_n_long, wl.lost.avg_long_dur, wl.lost.avg_pct_bip_from_long], backgroundColor:'rgba(251,113,133,.65)', borderRadius:3},
+      ]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{boxWidth:10,font:{size:10.5}}}},
+      scales:{ x:{grid:{color:colorBorder}}, y:{ticks:{font:{size:9.5}}, grid:{display:false}} }
+    },
+    plugins:[barValueLabelPlugin({formatter:(v,dsIdx,i)=>{
+      const units = ["'","","s","%"];
+      return v.toFixed(v<10?1:0)+units[i];
+    }})]
+  });
+}
+
+function renderDist(){
+  destroyChart('dist');
+  const cat = DATA.cat_distribution;
+  const ctx = document.getElementById('chartDist');
+  charts.dist = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: cat.map(c=>c.category), datasets:[
+      {label:'Cantidad', data: cat.map(c=>c.count), backgroundColor:'rgba(35,144,207,.6)', borderRadius:3},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:18}},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{afterLabel:(c)=> `${cat[c.dataIndex].pct_of_total}% del total`}}},
+      scales:{ x:{grid:{display:false}}, y:{title:{display:true,text:'secuencias', font:{size:10}}, grid:{color:colorBorder}} }
+    },
+    plugins:[barValueLabelPlugin({formatter:(v,dsIdx,i)=>`${v} (${cat[i].pct_of_total}%)`})]
+  });
+}
+
+function seqColorRGBA(color, alpha){
+  if(color==='green') return `rgba(52,211,153,${alpha})`;
+  if(color==='red') return `rgba(251,113,133,${alpha})`;
+  return `rgba(122,135,148,${alpha})`;
+}
+
+function renderScatterDurMin(){
+  destroyChart('scatterDurMin');
+  const seqs = getFilteredLongSeqs();
+  const green = seqs.filter(s=>s.color==='green').map(s=>({x:s.dur, y:s.minute}));
+  const red = seqs.filter(s=>s.color==='red').map(s=>({x:s.dur, y:s.minute}));
+  const grey = seqs.filter(s=>s.color==='unclassified').map(s=>({x:s.dur, y:s.minute}));
+  const allDurs = seqs.map(s=>s.dur);
+  const avgDur = allDurs.length ? Math.round(allDurs.reduce((a,b)=>a+b,0)/allDurs.length*10)/10 : 60;
+  const ctx = document.getElementById('chartScatterDurMin');
+  charts.scatterDurMin = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[
+      {label:'Verde', data:green, backgroundColor:seqColorRGBA('green',.75)},
+      {label:'Rojo', data:red, backgroundColor:seqColorRGBA('red',.75)},
+      {label:'Sin clasificar', data:grey, backgroundColor:seqColorRGBA('unclassified',.55)},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:18}},
+      plugins:{legend:{position:'top', labels:{boxWidth:10,font:{size:10.5}}}},
+      scales:{ x:{title:{display:true,text:'duración (s)', font:{size:10}}, grid:{color:colorBorder}},
+               y:{title:{display:true,text:'minuto de partido', font:{size:10}}, grid:{color:colorBorder}} }
+    },
+    plugins:[vRefLinePlugin(()=>avgDur, ()=>`Prom. ${avgDur}s`, colorAccent2)]
+  });
+}
+
+function renderScatterBipLong(){
+  destroyChart('scatterBipLong');
+  const ms = getFilteredMatches();
+  const green = ms.filter(m=>m.color==='green').map(m=>({x:m.total_bip_min, y:m.n_long}));
+  const red = ms.filter(m=>m.color==='red').map(m=>({x:m.total_bip_min, y:m.n_long}));
+  const allPts = ms.map(m=>({x:m.total_bip_min, y:m.n_long}));
+  const reg = linreg(allPts);
+  const datasets = [
+    {label:'Ganado', data:green, backgroundColor:'rgba(52,211,153,.75)', pointRadius:6},
+    {label:'Perdido', data:red, backgroundColor:'rgba(251,113,133,.75)', pointRadius:6},
+  ];
+  if(reg && allPts.length>=2){
+    const xs = allPts.map(p=>p.x); const xMin=Math.min(...xs), xMax=Math.max(...xs);
+    datasets.push({type:'line', label:'Tendencia', data:[{x:xMin,y:reg.slope*xMin+reg.intercept},{x:xMax,y:reg.slope*xMax+reg.intercept}],
+      borderColor:colorAccent2, borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false});
+  }
+  const ctx = document.getElementById('chartScatterBipLong');
+  charts.scatterBipLong = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top', labels:{boxWidth:10,font:{size:10.5}, filter:(item)=>item.text!=='Tendencia'}}},
+      scales:{ x:{title:{display:true,text:'Ball in Play total (min)', font:{size:10}}, grid:{color:colorBorder}},
+               y:{title:{display:true,text:'N° secuencias >60s', font:{size:10}}, grid:{color:colorBorder}} }
+    }
+  });
+  document.getElementById('corrDesc').textContent = `Correlación de Pearson r = ${DATA.kpi.pearson_r} (n=${DATA.kpi.n_matches}). Línea punteada = tendencia lineal (referencia). Muestra pequeña: interpretar como tendencia, no como relación causal fuerte.`;
+}
+
+function renderTimeline(){
+  destroyChart('timeline');
+  const ms = getFilteredMatches().slice().sort((a,b)=>a.fecha-b.fecha);
+  const labels = ms.map(matchLabel);
+  const green=[], red=[], grey=[];
+  ms.forEach((m,idx)=>{
+    m.long_sequences.forEach(s=>{
+      if(state.dur.length && !state.dur.includes(s.category)) return;
+      const pt = {x: s.minute, y: idx, r: Math.max(3, Math.min(14, s.dur/12))};
+      if(s.color==='green') green.push(pt); else if(s.color==='red') red.push(pt); else grey.push(pt);
+    });
+  });
+  const ctx = document.getElementById('chartTimeline');
+  charts.timeline = new Chart(ctx, {
+    type:'bubble',
+    data:{ datasets:[
+      {label:'Verde', data:green, backgroundColor:seqColorRGBA('green',.7)},
+      {label:'Rojo', data:red, backgroundColor:seqColorRGBA('red',.7)},
+      {label:'Sin clasificar', data:grey, backgroundColor:seqColorRGBA('unclassified',.5)},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`min ${fmt1(c.raw.x)} · ${Math.round((c.raw.r)*12)}s aprox`}}},
+      scales:{
+        x:{title:{display:true,text:'minuto de sesión', font:{size:10}}, min:0, max:95, grid:{color:colorBorder}},
+        y:{ type:'linear', min:-1, max:labels.length, ticks:{ stepSize:1, callback:(v)=> labels[v] ?? '', font:{size:9.5}, padding:32 }, grid:{color:colorBorder} }
+      }
+    },
+    plugins:[yLogoPluginLinear(ms.map(m=>m.club_key))]
+  });
+}
+
+function renderHeatmap(){
+  const ms = getFilteredMatches().slice().sort((a,b)=>a.fecha-b.fecha);
+  const cats = ['<30s','30-45s','45-60s','60-90s','90-120s','>120s'];
+  let max = 0;
+  const matrix = ms.map(m=>{
+    const counts = Object.fromEntries(cats.map(c=>[c,0]));
+    m.all_sequences.forEach(s=> counts[categorizeDur(s.dur)]++ );
+    Object.values(counts).forEach(v=> max = Math.max(max,v));
+    return {match:m, counts};
+  });
+  function cellColor(v){
+    if(v===0) return '#11161c';
+    const t = Math.min(1, v/max);
+    const r = Math.round(14 + t*(35-14)), g = Math.round(19 + t*(144-19)), b = Math.round(25 + t*(207-25));
+    return `rgb(${r},${g},${b})`;
+  }
+  function textColor(v){ return v/max > 0.45 ? '#04121c' : '#8593a1'; }
+
+  let html = '<thead><tr><th>Partido</th>' + cats.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+  matrix.forEach(row=>{
+    html += `<tr><td class="rowlabel">${logoImg(row.match.club_key,16)}F${row.match.fecha} · ${row.match.partido}</td>`;
+    cats.forEach(c=>{
+      const v = row.counts[c];
+      html += `<td style="background:${cellColor(v)}; color:${textColor(v)}">${v}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('heatmapTable').innerHTML = html;
+}
+
+/* ---------- Sequence table ---------- */
+let tableSort = {key:'fecha', dir:1};
+function renderTable(){
+  let seqs = getFilteredLongSeqs();
+  seqs.sort((a,b)=>{
+    const k = tableSort.key; let av=a[k], bv=b[k];
+    if(typeof av==='string'){ av=(av||'').toLowerCase(); bv=(bv||'').toLowerCase(); }
+    if(av<bv) return -1*tableSort.dir; if(av>bv) return 1*tableSort.dir; return 0;
+  });
+  const colorBadge = (c)=> c==='green' ? '<span class="badge green"><span class="dot green"></span>Verde</span>'
+                          : c==='red' ? '<span class="badge red"><span class="dot red"></span>Rojo</span>'
+                          : '<span class="badge grey"><span class="dot grey"></span>Sin clasificar</span>';
+  document.getElementById('seqTableBody').innerHTML = seqs.map(s=>`
+    <tr>
+      <td class="num">F${s.fecha}</td>
+      <td><span class="club-chip">${logoImg(s.club_key,16)}${s.partido}</span></td>
+      <td>${s.resultado==='Ganado' ? '<span class="badge green"><span class="dot green"></span>Ganado</span>' : '<span class="badge red"><span class="dot red"></span>Perdido</span>'}</td>
+      <td class="num">${fmt1(s.minute)}'</td>
+      <td class="num">${s.start_mmss}</td>
+      <td class="num">${s.end_mmss}</td>
+      <td class="num">${fmt1(s.dur)}</td>
+      <td><span class="cat-pill">${s.category}</span></td>
+      <td>${colorBadge(s.color)}</td>
+      <td>${s.outcome || '—'}</td>
+    </tr>`).join('');
+  document.getElementById('resultCount').textContent = `${seqs.length} secuencias >60s · ${getFilteredMatches().length} partidos`;
+}
+document.querySelectorAll('#seqTable thead th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(tableSort.key===key) tableSort.dir *= -1; else { tableSort.key=key; tableSort.dir=1; }
+    renderTable();
+  });
+});
+
+/* ---------- Insights ---------- */
+function renderInsights(){
+  const k = DATA.kpi, wl = DATA.wl_compare, cat = DATA.cat_distribution;
+  const rankBip = DATA.rank_bip, rankLong = DATA.rank_long, ob = DATA.outcome_breakdown;
+  const bestOutcome = ob.slice().sort((a,b)=>b.pct_green-a.pct_green)[0];
+  const worstOutcome = ob.slice().sort((a,b)=>a.pct_green-b.pct_green)[0];
+
+  const insights = [
+    {title:'Variabilidad de BiP moderada entre partidos',
+      hallazgo:`El BiP promedio del torneo es <b>${k.mean_bip}'</b> (DE ${k.std_bip}', CV ${k.cv_bip}%), con un rango de <b>${k.range_bip}'</b> entre ${rankBip[0].partido} (máx) y ${rankBip[rankBip.length-1].partido} (mín).`,
+      interpretacion:'Un CV cercano al 9% indica continuidad de juego relativamente consistente partido a partido.',
+      aplicacion:'Usar el rango observado como banda de referencia realista para planificar la exposición esperada en microciclo.'},
+    {title:`El éxito global de las jugadas clasificadas es ${k.pct_verde_real}%`,
+      hallazgo:`Sobre ${k.n_tagged} secuencias etiquetadas en Tag Notes, <b>${k.n_tagged_green}</b> terminaron en resultado Verde (${k.pct_verde_real}%).`,
+      interpretacion:'Este es el primer indicador directo de eficiencia de juego con base en el resultado real de cada secuencia, no un proxy de resultado de partido.',
+      aplicacion:'Usar el % Verde como KPI de eficiencia a seguir semana a semana, con foco en el tipo de jugada donde más se pierde valor.'},
+    {title:`${bestOutcome ? bestOutcome.outcome : ''} es la jugada con mayor % de éxito`,
+      hallazgo: bestOutcome ? `${bestOutcome.outcome} tiene ${bestOutcome.pct_green}% de resultados Verde (${bestOutcome.green}/${bestOutcome.total}), mientras que ${worstOutcome.outcome} es la de menor éxito (${worstOutcome.pct_green}%).` : 'Sin datos suficientes.',
+      interpretacion:'La brecha entre tipos de jugada señala en qué fases del juego el equipo capitaliza mejor las oportunidades y en cuáles hay margen de mejora técnica/táctica.',
+      aplicacion: worstOutcome ? `Priorizar trabajo técnico específico en ${worstOutcome.outcome} durante la semana, dado que es la fase con menor tasa de éxito.` : ''},
+    {title:'BiP no predice el resultado del partido',
+      hallazgo:`Los partidos ganados promedian <b>${wl.won.avg_bip}'</b> de BiP y los perdidos <b>${wl.lost.avg_bip}'</b> — diferencia mínima.`,
+      interpretacion:'El volumen de balón en juego por sí solo no diferencia partidos ganados de perdidos; la demanda física es pareja en ambos contextos.',
+      aplicacion:'No usar el resultado del partido como proxy de carga física al planificar la recuperación; usar el BiP real de cada partido.'},
+    {title:'Correlación fuerte entre BiP y cantidad de secuencias largas',
+      hallazgo:`Existe una correlación positiva fuerte (r=${k.pearson_r}) entre el BiP total del partido y la cantidad de secuencias &gt;60s.`,
+      interpretacion:'Los partidos con más balón en juego concentran más fases de esfuerzo continuo prolongado — el tipo de esfuerzo más demandante físicamente.',
+      aplicacion:'El BiP total del partido puede usarse como indicador temprano (in-game) del riesgo de exposición a secuencias largas.'},
+    {title:`${rankLong[0].partido} (Fecha ${rankLong[0].fecha}) tuvo la mayor exposición a juego continuo`,
+      hallazgo:`Registró <b>${rankLong[0].n_long}</b> secuencias &gt;60s, el máximo del torneo, en un partido ${rankLong[0].resultado==='Ganado'?'ganado':'perdido'}.`,
+      interpretacion:'Representa el "worst case scenario" del torneo en fases de esfuerzo continuo.',
+      aplicacion:'Replicar en bloques de entrenamiento específico el número y duración de secuencias largas de este partido como techo de exigencia.'},
+    {title:`La secuencia individual más larga del torneo duró ${k.max_long_seq_dur}s`,
+      hallazgo:`Se registró en ${k.max_long_seq_match}, muy por encima del límite de 60s que define esta categoría.`,
+      interpretacion:'Exige capacidad de mantener intensidad y decisión técnica bajo fatiga acumulada dentro de una misma fase, sin pausas.',
+      aplicacion:'Incluir al menos un estímulo de +180s de trabajo continuo de alta intensidad en el bloque semanal específico de rugby.'},
+    {title:'Las secuencias largas explican una porción sustancial del BiP total',
+      hallazgo:`En promedio, las secuencias &gt;60s explican una parte relevante del Ball in Play total de cada partido, pese a ser pocas en cantidad relativa.`,
+      interpretacion:'Un número relativamente chico de fases largas concentra una parte importante del tiempo real de juego.',
+      aplicacion:'Priorizar la duración acumulada en secuencias largas (no solo el conteo) como métrica de carga en el reporte post-partido.'},
+  ];
+
+  document.getElementById('insightsGrid').innerHTML = insights.map(i=>`
+    <div class="insight-card"><h4>${i.title}</h4>
+      <p><span class="lbl">Hallazgo</span><br>${i.hallazgo}</p>
+      <p><span class="lbl">Interpretación</span><br>${i.interpretacion}</p>
+      <p><span class="lbl">Aplicación</span><br>${i.aplicacion}</p></div>`).join('');
+
+  const recs = [
+    {t:'Bloques de esfuerzo continuo de 60–120s', d:'Diseñar bloques específicos de rugby (contacto + desplazamiento + decisión) con esa duración, siguiendo la relación de pausa observada.'},
+    {t:'Al menos un estímulo semanal de +180s continuos', d:`Justificado por el máximo real observado (${k.max_long_seq_dur}s en ${k.max_long_seq_match}).`},
+    {t:'Base de trabajo intermitente corto (&lt;30–45s)', d:'La mayoría de las secuencias de juego duran menos de 45s; el grueso del acondicionamiento debería reflejar esa intermitencia.'},
+    {t:'Referencia de BiP objetivo por partido', d:`Usar el rango observado (mín ${k.min_bip}', máx ${k.max_bip}') para calibrar la carga esperada en simulacros y en la lectura de partidos entrantes.`},
+    {t:`Foco técnico en ${worstOutcome ? worstOutcome.outcome : 'la jugada con menor % de éxito'}`, d: worstOutcome ? `Es la fase con menor tasa de resultados Verde (${worstOutcome.pct_green}%); priorizar su trabajo específico en la semana.` : ''},
+    {t:'Seguir sumando planillas para robustecer el análisis', d:'Usar el botón "Actualizar datos" para incorporar nuevas fechas apenas estén taggeadas y así ampliar la muestra de clasificación Verde/Rojo por jugada.'},
+  ];
+  document.getElementById('recsGrid').innerHTML = recs.map(r=>`
+    <div class="insight-card" style="border-left-color:var(--amber);"><h4 style="color:var(--amber);">${r.t}</h4><p>${r.d}</p></div>`).join('');
+}
+
+/* ---------- render all ---------- */
+function renderAll(){
+  renderKPIs(); renderBipMatch(); renderLongRank(); renderOutcomeStack(); renderOutcomeDonut();
+  renderWL(); renderDist(); renderScatterDurMin(); renderScatterBipLong(); renderTimeline();
+  renderHeatmap(); renderTable();
+}
+
+/* ---------- boot ---------- */
+function boot(){
+  if(typeof Chart === 'undefined'){ setTimeout(boot, 60); return; }
+  const cs = getComputedStyle(document.documentElement);
+  colorGreen = cs.getPropertyValue('--green').trim();
+  colorRed = cs.getPropertyValue('--red').trim();
+  colorGrey = cs.getPropertyValue('--grey').trim();
+  colorAccent = cs.getPropertyValue('--sic-blue').trim();
+  colorAccent2 = cs.getPropertyValue('--sic-blue2').trim();
+  colorAmber = cs.getPropertyValue('--amber').trim();
+  colorTextDim = cs.getPropertyValue('--text-dim').trim();
+  colorBorder = cs.getPropertyValue('--border').trim();
+  Chart.defaults.color = colorTextDim;
+  Chart.defaults.font.family = "ui-monospace, 'SF Mono', Consolas, monospace";
+  Chart.defaults.font.size = 11;
+  Chart.defaults.borderColor = colorBorder;
+
+  recomputeDerived();
+  renderMetho();
+  rebuildPartidoFilter();
+  renderInsights();
+  renderAll();
+
+  document.getElementById('fResultado').addEventListener('change', e=>{ state.resultado = e.target.value; renderAll(); });
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    state = {partido:[], resultado:'all', dur:[]};
+    document.getElementById('fResultado').value='all';
+    document.querySelectorAll('#partidoMselList input[type="checkbox"], #durMselList input[type="checkbox"]').forEach(cb=> cb.checked=false);
+    updateMselButton('partido'); updateMselButton('dur');
+    renderAll();
+  });
+  document.getElementById('updateDataBtn').addEventListener('click', ()=> document.getElementById('csvUploadInput').click());
+  document.getElementById('csvUploadInput').addEventListener('change', (e)=>{ ingestCSVFiles(e.target.files); e.target.value=''; });
+}
+boot();
+</script>
+</body>
+</html>
