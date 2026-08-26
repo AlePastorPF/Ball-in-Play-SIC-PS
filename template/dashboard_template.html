@@ -202,9 +202,67 @@ footer{padding:30px clamp(16px,3vw,40px); color:var(--text-faint); font-size:11p
   .update-btn-wrap{align-items:flex-start;}
   .update-note{text-align:left;}
 }
+/* ---- login gate ---- */
+.login-gate{
+  position:fixed; inset:0; z-index:1000; background:var(--bg);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.login-gate::before{
+  content:""; position:absolute; top:-20%; left:50%; transform:translateX(-50%); width:600px; height:600px;
+  background:radial-gradient(circle, var(--sic-blue-soft) 0%, transparent 70%); pointer-events:none;
+}
+.login-card{
+  position:relative; width:100%; max-width:360px; background:var(--panel); border:1px solid var(--border);
+  border-radius:12px; padding:32px 30px 28px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.login-logo{width:60px; height:60px; margin:0 auto 14px; display:block; filter:drop-shadow(0 0 14px rgba(35,144,207,.35));}
+.login-eyebrow{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--sic-blue2); margin-bottom:8px;
+}
+.login-title{font-family:var(--display); font-size:19px; font-weight:800; letter-spacing:-.01em; line-height:1.15; text-transform:uppercase;}
+.login-title .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.72em; margin-top:4px;}
+.login-divider{height:1px; background:var(--border); margin:20px 0 18px;}
+.login-form{display:flex; flex-direction:column; gap:5px; text-align:left;}
+.login-label{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-top:10px;}
+.login-label:first-child{margin-top:0;}
+.login-input{
+  background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:6px;
+  padding:9px 11px; font-size:13.5px; font-family:var(--sans); outline:none; transition:border-color .12s;
+}
+.login-input:focus{border-color:var(--sic-blue);}
+.login-error{color:var(--red); font-size:12px; margin-top:10px; text-align:center;}
+.login-btn{
+  margin-top:20px; font-family:var(--display); font-weight:700; font-size:13px; letter-spacing:.03em;
+  background:var(--sic-blue); color:#04121c; border:none; padding:11px 18px; border-radius:7px; cursor:pointer;
+  transition:filter .12s;
+}
+.login-btn:hover{filter:brightness(1.1);}
+.logout-link{color:var(--text-faint); text-decoration:underline; cursor:pointer;}
+.logout-link:hover{color:var(--text-dim);}
 </style>
 </head>
 <body>
+
+<!-- ============ LOGIN GATE ============ -->
+<div id="loginGate" class="login-gate">
+  <div class="login-card">
+    <img class="login-logo" id="loginLogo" alt="San Isidro Club">
+    <div class="login-eyebrow">Performance Analysis · Sports Science</div>
+    <h1 class="login-title"><span class="club-name">San Isidro Club</span><span class="sub">Ball in Play / Secuencias Largas</span></h1>
+    <div class="login-divider"></div>
+    <form id="loginForm" class="login-form" autocomplete="off">
+      <label class="login-label" for="loginUser">Usuario</label>
+      <input class="login-input" id="loginUser" type="text" autocomplete="username" autocapitalize="off" spellcheck="false">
+      <label class="login-label" for="loginPass">Contraseña</label>
+      <input class="login-input" id="loginPass" type="password" autocomplete="current-password">
+      <div class="login-error" id="loginError" hidden>Usuario o contraseña incorrectos.</div>
+      <button type="submit" class="login-btn">Ingresar</button>
+    </form>
+  </div>
+</div>
+
+<div id="dashboardContent" style="display:none;">
 
 <div class="header">
   <img class="header-logo" id="headerLogo" alt="San Isidro Club">
@@ -397,11 +455,45 @@ footer{padding:30px clamp(16px,3vw,40px); color:var(--text-faint); font-size:11p
   </div>
 </div>
 
-<footer>San Isidro Club · Ball in Play / Secuencias Largas Dashboard · Fuente: planillas de sesión Top 14 URBA 2026 · Duración recalculada como Tag End − Tag Start · Clasificación Verde/Rojo por jugada tomada de Tag Notes (columna G) · Tipografía Mark Pro no disponible vía CDN público — sustituida por Manrope/Inter</footer>
+<footer>San Isidro Club · Ball in Play / Secuencias Largas Dashboard · Fuente: planillas de sesión Top 14 URBA 2026 · Duración recalculada como Tag End − Tag Start · Clasificación Verde/Rojo por jugada tomada de Tag Notes (columna G) · Tipografía Mark Pro no disponible vía CDN público — sustituida por Manrope/Inter · <a href="#" id="logoutLink" class="logout-link">Cerrar sesión</a></footer>
+
+</div><!-- /#dashboardContent -->
 
 <script>
 const DATA = __DATA_JSON__;
 const CLUB_LOGOS = __LOGOS_JSON__;
+
+/* ---------- login gate (client-side only — not real security, just a soft filter) ---------- */
+const AUTH_USER = 'SIC';
+const AUTH_PASS = '1935Zanja';
+const AUTH_KEY = 'sic_dashboard_auth_v1';
+
+document.getElementById('loginLogo').src = CLUB_LOGOS['SIC_header'] || CLUB_LOGOS['SIC'];
+
+function showDashboard(){
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('dashboardContent').style.display = '';
+}
+if(localStorage.getItem(AUTH_KEY) === '1'){ showDashboard(); }
+
+document.getElementById('loginForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if(user === AUTH_USER && pass === AUTH_PASS){
+    localStorage.setItem(AUTH_KEY, '1');
+    document.getElementById('loginError').hidden = true;
+    showDashboard();
+  } else {
+    document.getElementById('loginError').hidden = false;
+    document.getElementById('loginPass').value = '';
+  }
+});
+document.getElementById('logoutLink').addEventListener('click', (e)=>{
+  e.preventDefault();
+  localStorage.removeItem(AUTH_KEY);
+  location.reload();
+});
 
 document.getElementById('headerLogo').src = CLUB_LOGOS['SIC_header'] || CLUB_LOGOS['SIC'];
 
