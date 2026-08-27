@@ -10,23 +10,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';document.head.appendChild(s);"></script>
 <style>
 :root{
-  --bg:#060a0e;
-  --panel:#0e141a;
-  --panel2:#141c24;
-  --border:#212b35;
-  --border-soft:#19222b;
-  --text:#eef2f5;
-  --text-dim:#8b98a5;
-  --text-faint:#57636f;
+  --bg:#f5f8fb;
+  --panel:#ffffff;
+  --panel2:#eef2f7;
+  --border:#e1e8f0;
+  --border-soft:#edf1f6;
+  --text:#152130;
+  --text-dim:#5c6b7a;
+  --text-faint:#8996a4;
   --sic-blue:#2390cf;
-  --sic-blue-soft:rgba(35,144,207,.16);
-  --sic-blue2:#5cb8ea;
-  --green:#34d399;
-  --green-soft:rgba(52,211,153,.14);
-  --red:#fb7185;
-  --red-soft:rgba(251,113,133,.14);
-  --amber:#fbbf24;
-  --grey:#7a8794;
+  --sic-blue-soft:rgba(35,144,207,.10);
+  --sic-blue2:#106893;
+  --green:#12946a;
+  --green-soft:rgba(18,148,106,.11);
+  --red:#e0405c;
+  --red-soft:rgba(224,64,92,.10);
+  --amber:#c2760a;
+  --grey:#67768a;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
   --sans:'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --display:'Manrope','Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -39,7 +39,7 @@ body{padding-bottom:60px;}
 .header{
   padding:26px clamp(16px,3vw,40px) 22px;
   border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, #0b1119 0%, var(--bg) 100%);
+  background:linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
   position:relative; overflow:hidden;
   display:flex; align-items:center; gap:22px; flex-wrap:wrap;
 }
@@ -64,8 +64,9 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 .update-btn-wrap{display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
 .update-btn{
   font-family:var(--display); font-weight:700; font-size:12.5px; letter-spacing:.03em;
-  background:var(--sic-blue); color:#04121c; border:none; padding:11px 18px; border-radius:7px; cursor:pointer;
-  display:flex; align-items:center; gap:8px; transition:filter .12s;
+  background:var(--sic-blue); color:#ffffff; border:none; padding:11px 18px; border-radius:7px; cursor:pointer;
+  display:flex; align-items:center; gap:8px; transition:filter .12s, box-shadow .12s;
+  box-shadow:0 4px 14px rgba(35,144,207,.32);
 }
 .update-btn:hover{filter:brightness(1.1);}
 .update-note{font-size:10.5px; color:var(--text-faint); max-width:180px; text-align:right; line-height:1.4;}
@@ -88,7 +89,7 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 /* ---- Filters ---- */
 .filters{
   position:sticky; top:0; z-index:50; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-  padding:12px clamp(16px,3vw,40px); background:rgba(6,10,14,.92); backdrop-filter:blur(10px);
+  padding:12px clamp(16px,3vw,40px); background:rgba(255,255,255,.85); backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border); margin-top:18px;
 }
 .filters label{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-right:6px;}
@@ -108,7 +109,7 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 .msel-btn.has-selection{border-color:var(--sic-blue); color:var(--sic-blue2); background:var(--sic-blue-soft);}
 .msel-panel{
   position:absolute; top:calc(100% + 6px); left:0; z-index:80; min-width:260px; max-width:340px;
-  background:var(--panel2); border:1px solid var(--border); border-radius:8px; box-shadow:0 12px 28px rgba(0,0,0,.45);
+  background:var(--panel); border:1px solid var(--border); border-radius:8px; box-shadow:0 16px 32px rgba(21,33,48,.14);
   padding:8px; display:flex; flex-direction:column; gap:6px;
 }
 .msel-panel[hidden]{display:none;}
@@ -133,7 +134,7 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 
 /* ---- KPI cards ---- */
 .kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:12px;}
-.kpi-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; position:relative; overflow:hidden;}
+.kpi-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; position:relative; overflow:hidden; box-shadow:0 1px 3px rgba(21,33,48,.05), 0 8px 20px rgba(21,33,48,.04);}
 .kpi-card .kpi-label{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px;}
 .kpi-card .kpi-value{font-family:var(--display); font-size:27px; font-weight:800; letter-spacing:-.02em; line-height:1;}
 .kpi-card .kpi-sub{font-size:11.5px; color:var(--text-dim); margin-top:6px;}
@@ -145,7 +146,7 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 /* ---- Grid layouts ---- */
 .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
 .grid-3{display:grid; grid-template-columns:1.3fr .7fr; gap:14px;}
-.panel{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px 10px;}
+.panel{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px 10px; box-shadow:0 1px 3px rgba(21,33,48,.05), 0 8px 20px rgba(21,33,48,.04);}
 .panel-title{font-family:var(--display); font-size:13px; font-weight:700; margin-bottom:2px;}
 .panel-desc{font-size:11.5px; color:var(--text-faint); margin-bottom:12px;}
 .chart-wrap{position:relative; height:260px;}
@@ -155,7 +156,7 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 
 /* ---- Insights ---- */
 .insights-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px;}
-.insight-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; border-left:3px solid var(--sic-blue2);}
+.insight-card{background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px 18px; border-left:3px solid var(--sic-blue2); box-shadow:0 1px 3px rgba(21,33,48,.05), 0 8px 20px rgba(21,33,48,.04);}
 .insight-card h4{font-family:var(--display); font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--sic-blue2); margin-bottom:8px; font-weight:700;}
 .insight-card p{font-size:12.5px; line-height:1.65; color:var(--text-dim); margin-bottom:6px;}
 .insight-card p b{color:var(--text);}
@@ -165,7 +166,7 @@ h1 .sub{display:block; color:var(--sic-blue2); font-weight:700; font-size:.78em;
 .badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:11px; padding:2px 8px; border-radius:20px;}
 .badge.green{background:var(--green-soft); color:var(--green);}
 .badge.red{background:var(--red-soft); color:var(--red);}
-.badge.grey{background:rgba(122,135,148,.14); color:var(--grey);}
+.badge.grey{background:rgba(103,118,138,.12); color:var(--grey);}
 .dot{width:7px; height:7px; border-radius:50%;}
 .dot.green{background:var(--green);} .dot.red{background:var(--red);} .dot.grey{background:var(--grey);}
 
@@ -187,7 +188,7 @@ tbody td.num{font-family:var(--mono); color:var(--text);}
 .heatmap-scroll{overflow-x:auto;}
 .heatmap{border-collapse:collapse; font-size:11px; width:100%;}
 .heatmap th{font-family:var(--mono); font-size:10px; color:var(--text-faint); padding:6px 8px; text-transform:uppercase; letter-spacing:.05em;}
-.heatmap td{text-align:center; padding:7px 8px; font-family:var(--mono); border:1px solid var(--bg); color:#0a0e12; font-weight:700; min-width:52px;}
+.heatmap td{text-align:center; padding:7px 8px; font-family:var(--mono); border:1px solid var(--bg); color:#33404d; font-weight:700; min-width:52px;}
 .heatmap td.rowlabel{text-align:left; color:var(--text-dim); font-weight:400; background:transparent;}
 .heatmap td.rowlabel img{width:16px; height:16px; object-fit:contain; vertical-align:middle; margin-right:6px; border-radius:2px;}
 
@@ -213,7 +214,7 @@ footer{padding:30px clamp(16px,3vw,40px); color:var(--text-faint); font-size:11p
 }
 .login-card{
   position:relative; width:100%; max-width:360px; background:var(--panel); border:1px solid var(--border);
-  border-radius:12px; padding:32px 30px 28px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5);
+  border-radius:12px; padding:32px 30px 28px; text-align:center; box-shadow:0 24px 60px rgba(21,33,48,.16);
 }
 .login-logo{width:60px; height:60px; margin:0 auto 14px; display:block; filter:drop-shadow(0 0 14px rgba(35,144,207,.35));}
 .login-eyebrow{
@@ -234,8 +235,8 @@ footer{padding:30px clamp(16px,3vw,40px); color:var(--text-faint); font-size:11p
 .login-error{color:var(--red); font-size:12px; margin-top:10px; text-align:center;}
 .login-btn{
   margin-top:20px; font-family:var(--display); font-weight:700; font-size:13px; letter-spacing:.03em;
-  background:var(--sic-blue); color:#04121c; border:none; padding:11px 18px; border-radius:7px; cursor:pointer;
-  transition:filter .12s;
+  background:var(--sic-blue); color:#ffffff; border:none; padding:11px 18px; border-radius:7px; cursor:pointer;
+  transition:filter .12s, box-shadow .12s; box-shadow:0 4px 14px rgba(35,144,207,.32);
 }
 .login-btn:hover{filter:brightness(1.1);}
 .logout-link{color:var(--text-faint); text-decoration:underline; cursor:pointer;}
@@ -976,7 +977,7 @@ function barValueLabelPlugin(opts={}){
           const pos = el.tooltipPosition ? el.tooltipPosition() : {x:el.x,y:el.y};
           const label = opts.formatter ? opts.formatter(raw, dsIndex, i) : (Number.isInteger(raw)?raw:Math.round(raw*10)/10);
           ctx.save();
-          ctx.fillStyle = opts.color || '#c7d1da';
+          ctx.fillStyle = opts.color || '#33404d';
           ctx.font = opts.font || "10px ui-monospace, monospace";
           if(indexAxisY){
             ctx.textAlign='left'; ctx.textBaseline='middle';
@@ -1103,7 +1104,7 @@ function renderBipMatch(){
     data:{ labels: ms.map(m=>`F${m.fecha}`),
       datasets:[
         {type:'bar', label:'BiP (min)', data: ms.map(m=>m.total_bip_min),
-          backgroundColor: ms.map(m=> m.color==='green'? 'rgba(52,211,153,.55)':'rgba(251,113,133,.55)'), borderRadius:3, barPercentage:.7},
+          backgroundColor: ms.map(m=> m.color==='green'? 'rgba(18,148,106,.55)':'rgba(224,64,92,.55)'), borderRadius:3, barPercentage:.7},
         {type:'line', label:'Promedio', data: ms.map(()=>avg), borderColor:colorAccent, borderDash:[5,4], pointRadius:0, borderWidth:1.5}
       ]},
     options:{
@@ -1129,7 +1130,7 @@ function renderLongRank(){
     type:'bar',
     data:{ labels: ms.map(matchLabel),
       datasets:[{ label:'Secuencias >60s', data: ms.map(m=>m.n_long),
-        backgroundColor: ms.map(m=> m.color==='green'? 'rgba(52,211,153,.65)':'rgba(251,113,133,.65)'), borderRadius:3 }]},
+        backgroundColor: ms.map(m=> m.color==='green'? 'rgba(18,148,106,.65)':'rgba(224,64,92,.65)'), borderRadius:3 }]},
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
       layout:{padding:{top:20, right:34}},
@@ -1155,8 +1156,8 @@ function renderOutcomeStack(){
   charts.outcomeStack = new Chart(ctx, {
     type:'bar',
     data:{ labels:outcomes, datasets:[
-      {label:'Verde', data:greenData, backgroundColor:'rgba(52,211,153,.75)', borderRadius:3, stack:'s'},
-      {label:'Rojo', data:redData, backgroundColor:'rgba(251,113,133,.75)', borderRadius:3, stack:'s'},
+      {label:'Verde', data:greenData, backgroundColor:'rgba(18,148,106,.75)', borderRadius:3, stack:'s'},
+      {label:'Rojo', data:redData, backgroundColor:'rgba(224,64,92,.75)', borderRadius:3, stack:'s'},
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -1178,7 +1179,7 @@ function renderOutcomeDonut(){
   const ctx = document.getElementById('chartOutcomeDonut');
   charts.outcomeDonut = new Chart(ctx, {
     type:'doughnut',
-    data:{ labels:['Verde','Rojo'], datasets:[{ data:[green,red], backgroundColor:['rgba(52,211,153,.85)','rgba(251,113,133,.85)'], borderWidth:0 }] },
+    data:{ labels:['Verde','Rojo'], datasets:[{ data:[green,red], backgroundColor:['rgba(18,148,106,.85)','rgba(224,64,92,.85)'], borderWidth:0 }] },
     options:{
       responsive:true, maintainAspectRatio:false, cutout:'72%',
       plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10.5}}}}
@@ -1195,8 +1196,8 @@ function renderWL(){
     type:'bar',
     data:{ labels:['BiP promedio (min)','Secuencias >60s (prom.)','Duración prom. secuencia (s)','% BiP explicado por secuencias largas'],
       datasets:[
-        {label:`Ganados (n=${wl.won.n})`, data:[wl.won.avg_bip, wl.won.avg_n_long, wl.won.avg_long_dur, wl.won.avg_pct_bip_from_long], backgroundColor:'rgba(52,211,153,.65)', borderRadius:3},
-        {label:`Perdidos (n=${wl.lost.n})`, data:[wl.lost.avg_bip, wl.lost.avg_n_long, wl.lost.avg_long_dur, wl.lost.avg_pct_bip_from_long], backgroundColor:'rgba(251,113,133,.65)', borderRadius:3},
+        {label:`Ganados (n=${wl.won.n})`, data:[wl.won.avg_bip, wl.won.avg_n_long, wl.won.avg_long_dur, wl.won.avg_pct_bip_from_long], backgroundColor:'rgba(18,148,106,.65)', borderRadius:3},
+        {label:`Perdidos (n=${wl.lost.n})`, data:[wl.lost.avg_bip, wl.lost.avg_n_long, wl.lost.avg_long_dur, wl.lost.avg_pct_bip_from_long], backgroundColor:'rgba(224,64,92,.65)', borderRadius:3},
       ]},
     options:{
       indexAxis:'y', responsive:true, maintainAspectRatio:false,
@@ -1230,9 +1231,9 @@ function renderDist(){
 }
 
 function seqColorRGBA(color, alpha){
-  if(color==='green') return `rgba(52,211,153,${alpha})`;
-  if(color==='red') return `rgba(251,113,133,${alpha})`;
-  return `rgba(122,135,148,${alpha})`;
+  if(color==='green') return `rgba(18,148,106,${alpha})`;
+  if(color==='red') return `rgba(224,64,92,${alpha})`;
+  return `rgba(103,118,138,${alpha})`;
 }
 
 function renderScatterDurMin(){
@@ -1270,8 +1271,8 @@ function renderScatterBipLong(){
   const allPts = ms.map(m=>({x:m.total_bip_min, y:m.n_long}));
   const reg = linreg(allPts);
   const datasets = [
-    {label:'Ganado', data:green, backgroundColor:'rgba(52,211,153,.75)', pointRadius:6},
-    {label:'Perdido', data:red, backgroundColor:'rgba(251,113,133,.75)', pointRadius:6},
+    {label:'Ganado', data:green, backgroundColor:'rgba(18,148,106,.75)', pointRadius:6},
+    {label:'Perdido', data:red, backgroundColor:'rgba(224,64,92,.75)', pointRadius:6},
   ];
   if(reg && allPts.length>=2){
     const xs = allPts.map(p=>p.x); const xMin=Math.min(...xs), xMax=Math.max(...xs);
@@ -1335,12 +1336,12 @@ function renderHeatmap(){
     return {match:m, counts};
   });
   function cellColor(v){
-    if(v===0) return '#11161c';
+    if(v===0) return '#eef2f7';
     const t = Math.min(1, v/max);
-    const r = Math.round(14 + t*(35-14)), g = Math.round(19 + t*(144-19)), b = Math.round(25 + t*(207-25));
+    const r = Math.round(214 + t*(35-214)), g = Math.round(226 + t*(144-226)), b = Math.round(237 + t*(207-237));
     return `rgb(${r},${g},${b})`;
   }
-  function textColor(v){ return v/max > 0.45 ? '#04121c' : '#8593a1'; }
+  function textColor(v){ return v/max > 0.55 ? '#ffffff' : '#33404d'; }
 
   let html = '<thead><tr><th>Partido</th>' + cats.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
   matrix.forEach(row=>{
